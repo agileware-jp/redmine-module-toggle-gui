@@ -15,7 +15,10 @@
 'use strict';
 
 const fs = require('fs');
-const { Agent } = require('undici');
+// グローバル fetch ではなく undici 自身の fetch を使う。
+// クライアント証明書等で渡す dispatcher(Agent) は同じ undici インスタンス由来でないと
+// Node 内蔵 fetch では UND_ERR_INVALID_ARG で弾かれるため、fetch も undici から取得する。
+const { Agent, fetch: undiciFetch } = require('undici');
 
 const DEFAULT_DELAY_MS = 500;
 const DEFAULT_TIMEOUT_MS = 30000; // 各リクエストのタイムアウト
@@ -129,7 +132,9 @@ async function fetchWithRetry(url, options = {}, { timeoutMs = DEFAULT_TIMEOUT_M
   let attempt = 0;
   while (true) {
     try {
-      const res = await fetch(url, { ...options, dispatcher, signal: AbortSignal.timeout(timeoutMs) });
+      const fetchOpts = { ...options, signal: AbortSignal.timeout(timeoutMs) };
+      if (dispatcher) fetchOpts.dispatcher = dispatcher;
+      const res = await undiciFetch(url, fetchOpts);
       if (isRetriableStatus(res.status) && attempt < retries) {
         const wait = retryAfterMs(res) ?? backoffMs(attempt);
         attempt++;
