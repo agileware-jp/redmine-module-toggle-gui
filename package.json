@@ -1,0 +1,35 @@
+{
+  "name": "redmine-module-toggle-gui",
+  "version": "0.3.0",
+  "description": "Redmine 全プロジェクトのモジュールを一括ON/OFFするGUI (Electron)",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win"
+  },
+  "author": "Agileware Inc.",
+  "license": "MIT",
+  "dependencies": {
+    "undici": "^5.28.4"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "jp.agileware.redmine-module-toggle",
+    "productName": "RedmineModuleToggle",
+    "files": [
+      "main.js",
+      "preload.js",
+      "redmine.js",
+      "renderer/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    }
+  }
+}

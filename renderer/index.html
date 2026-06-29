@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';" />
+    <title>Redmine モジュール一括設定</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Redmine モジュール一括設定</h1>
+
+    <!-- STEP 1: 接続設定 -->
+    <section id="step-connect" class="card">
+      <h2>1. 接続設定</h2>
+      <label>
+        Redmine サイト URL
+        <input id="url" type="text" placeholder="https://redmine.example.com" autocomplete="off" />
+      </label>
+      <label>
+        REST API キー
+        <input id="apiKey" type="password" placeholder="API キー" autocomplete="off" />
+      </label>
+
+      <details class="tls">
+        <summary>TLS / 証明書設定（任意）</summary>
+        <p class="muted small">
+          クライアント証明書が必須のサイト(相互TLS)や、自己署名／社内CAのサイトに接続する場合に設定します。通常のHTTPSでは不要です。
+        </p>
+        <label>
+          クライアント証明書 (.p12 / .pfx)
+          <div class="file-row">
+            <input id="pfxPath" type="text" readonly placeholder="未選択" />
+            <button id="btn-pick-pfx" type="button" class="secondary">選択</button>
+            <button id="btn-clear-pfx" type="button" class="link">クリア</button>
+          </div>
+        </label>
+        <label>
+          パスフレーズ（証明書のパスワード）
+          <input id="pfxPass" type="password" placeholder="証明書にパスワードがある場合" autocomplete="off" />
+        </label>
+        <label>
+          社内CA証明書 (.pem / .crt)（任意）
+          <div class="file-row">
+            <input id="caPath" type="text" readonly placeholder="未選択" />
+            <button id="btn-pick-ca" type="button" class="secondary">選択</button>
+            <button id="btn-clear-ca" type="button" class="link">クリア</button>
+          </div>
+        </label>
+        <label class="check">
+          <input id="insecure" type="checkbox" />
+          サーバ証明書の検証をスキップ（自己署名向け・非推奨）
+        </label>
+      </details>
+
+      <div class="actions">
+        <button id="btn-connect" type="button">接続してモジュール一覧を取得</button>
+      </div>
+      <p id="connect-status" class="status"></p>
+    </section>
+
+    <!-- STEP 2: モジュール選択 -->
+    <section id="step-select" class="card hidden">
+      <h2>2. 対象モジュールを選択</h2>
+      <p id="select-summary" class="muted"></p>
+      <div class="select-actions">
+        <button id="btn-check-all" type="button" class="link">全選択</button>
+        <button id="btn-uncheck-all" type="button" class="link">全解除</button>
+      </div>
+      <div id="module-list" class="module-list"></div>
+      <div class="actions">
+        <button id="btn-on" type="button">選択したモジュールを全プロジェクトで ON</button>
+        <button id="btn-off" type="button" class="danger">選択したモジュールを全プロジェクトで OFF</button>
+      </div>
+    </section>
+
+    <!-- STEP 3: 実行ログ -->
+    <section id="step-log" class="card hidden">
+      <h2>3. 実行ログ</h2>
+      <pre id="log" class="log"></pre>
+      <p id="log-summary" class="status"></p>
+    </section>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>
