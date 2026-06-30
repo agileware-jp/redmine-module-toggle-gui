@@ -1,7 +1,7 @@
-# Redmine モジュール一括設定 (GUI / Electron)
+# Redmine Module Toggler
 
-Redmine のアクティブな全プロジェクトに対して、指定したモジュールを一括で OFF にする Windows GUI アプリ。
-CLI 版 `index.js` のロジック（マージ動作の ON/OFF）を Electron で GUI 化したもの。
+Redmine のアクティブな全プロジェクトに対して、指定したモジュールを一括で **ON / OFF** するデスクトップ GUI アプリ。
+**Electron 製**のため単一コードベースで動作し、Windows 向けの `.exe` を配布できるほか、開発・ビルドは macOS でも行える。
 
 ## 機能
 
@@ -11,6 +11,13 @@ CLI 版 `index.js` のロジック（マージ動作の ON/OFF）を Electron �
 3. 確認のうえ、アクティブな全プロジェクトに対して選択モジュールを **ON** または **OFF**
    - 既存のモジュール設定は保持し、選択分だけを ON（和集合）/ OFF（差集合）
    - 差分が無いプロジェクトは PUT せずスキップ
+
+## 技術構成・対応プラットフォーム
+
+- **Electron 製のクロスプラットフォーム構成**。UI（HTML/CSS/JS）とロジック（`redmine.js`）は単一コードベースで、OS ごとにコードを分ける必要はない。
+- **Windows**: `.exe`（ポータブル版・インストーラ）を配布。実行環境（Node/Chromium）を同梱するため、利用者は Node.js のインストール不要。
+- **macOS**: 開発時は `npm start` でそのまま起動して動作確認できる。配布用の macOS アプリ（`.app`/`.dmg`）も Electron の仕組みで生成可能（後述）。
+- **ビルドはクロスビルドせず、各 OS 上でネイティブに実施**する方針（Windows の `.exe` は Windows 実機/VM 上で、macOS アプリは macOS 上でビルド）。
 
 ## TLS / 証明書対応
 
@@ -62,6 +69,27 @@ npm run build:win
    - `RedmineModuleToggle x.y.z.exe` … ポータブル版（インストール不要・単一 exe）
 
 `package.json` の `build.win.target` で `nsis` / `portable` を切り替え可能。
+
+## macOS 用アプリのビルド（任意）
+
+配布用の macOS アプリも同じコードベースから生成できる。macOS 上で次のように行う（クロスビルドはしない）。
+
+1. `package.json` の `build` に mac ターゲットを追加（例）:
+
+   ```json
+   "mac": { "target": ["dmg", "zip"] }
+   ```
+
+2. ビルド用スクリプトを追加（例: `"build:mac": "electron-builder --mac"`）し、macOS 上で実行:
+
+   ```sh
+   npm install
+   npm run build:mac
+   ```
+
+3. `dist/` に `.dmg` / `.app` が出力される。
+
+> 署名・公証（notarization）なしの場合、macOS の Gatekeeper により初回起動時に警告が出る（右クリック →「開く」等で回避可能）。
 
 ## 注意
 

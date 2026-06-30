@@ -18,7 +18,7 @@
   },
   "build": {
     "appId": "jp.agileware.redmine-module-toggle",
-    "productName": "RedmineModuleToggle",
+    "productName": "Redmine Module Toggler",
     "files": [
       "main.js",
       "preload.js",
