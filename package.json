@@ -1,6 +1,6 @@
 {
   "name": "redmine-module-toggle-gui",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Redmine 全プロジェクトのモジュールを一括ON/OFFするGUI (Electron)",
   "main": "main.js",
   "scripts": {
