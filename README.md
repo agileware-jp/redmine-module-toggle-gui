@@ -57,7 +57,7 @@ npm test
 ```
 
 - 対象: URL 正規化、ON/OFF のモジュール差分計算、ページング、リトライ（`429`/`Retry-After`・`4xx` 非リトライ）、`runToggle` の更新/スキップ判定と PUT 本文、証明書 dispatcher 生成など。
-- **Node.js 20 以上が必要**（`undici` 8 系の要件）。
+- **Node.js 22 以上が必要**（`undici` 8 系が Node 22.10+ の API に依存するため）。
 - push / PR 時に GitHub Actions（`.github/workflows/ci.yml`）でも自動実行される。
 
 ## Windows 用 .exe のビルド
