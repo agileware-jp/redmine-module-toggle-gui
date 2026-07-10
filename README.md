@@ -48,6 +48,18 @@ npm start
 
 Electron は Mac でも起動するので、UI とロジックの確認は Mac 上でできる。
 
+## テスト
+
+ロジック層（`redmine.js`）の自動ユニットテストを `node:test`（Node 標準）で用意している。実ネットワーク・実 Redmine・Electron は不要で、HTTP は `undici` の `MockAgent` でモックする。
+
+```sh
+npm test
+```
+
+- 対象: URL 正規化、ON/OFF のモジュール差分計算、ページング、リトライ（`429`/`Retry-After`・`4xx` 非リトライ）、`runToggle` の更新/スキップ判定と PUT 本文、証明書 dispatcher 生成など。
+- **Node.js 20 以上が必要**（`undici` 8 系の要件）。
+- push / PR 時に GitHub Actions（`.github/workflows/ci.yml`）でも自動実行される。
+
 ## Windows 用 .exe のビルド
 
 クロスビルドは行わず、**Windows 上でネイティブにビルド**する（実機・VM どちらでも可）。

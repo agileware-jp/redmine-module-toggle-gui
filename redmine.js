@@ -361,4 +361,13 @@ async function runToggle({ url, apiKey, modules, mode = 'off', dryRun = false, d
   return { updated, skipped, failed, total: projects.length, dryRun };
 }
 
-module.exports = { MODULE_LABELS, fetchModuleSummary, runToggle };
+module.exports = {
+  MODULE_LABELS,
+  fetchModuleSummary,
+  runToggle,
+  // 以下はテスト用に公開している内部関数
+  normalizeUrl,
+  computeAfter,
+  sameSet,
+  buildDispatcher,
+};

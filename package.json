@@ -5,7 +5,11 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "test": "node --test",
     "build:win": "electron-builder --win"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "author": "Agileware Inc.",
   "license": "MIT",
