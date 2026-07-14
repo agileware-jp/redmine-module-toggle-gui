@@ -80,6 +80,13 @@ function setBusy(busy) {
   [btnConnect, btnOn, btnOff, btnCheckAll, btnUncheckAll].forEach((b) => {
     b.disabled = busy;
   });
+  // busy 解除時は選択状態に応じて ON/OFF ボタンの活性を復元する
+  if (!busy) updateRunButtons();
+}
+
+// IPC 越しの例外メッセージから内部表現 ("Error invoking remote method '…': ") を除去する
+function friendlyIpcError(e) {
+  return String((e && e.message) || e).replace(/^Error invoking remote method '[^']+':\s*(?:[A-Za-z]*Error:\s*)?/, '');
 }
 
 // ---- STEP 1: 接続 ----
@@ -110,7 +117,7 @@ btnConnect.addEventListener('click', async () => {
     stepSelect.classList.remove('hidden');
     stepSelect.scrollIntoView({ behavior: 'smooth' });
   } catch (e) {
-    setStatus(connectStatus, '接続に失敗しました: ' + e.message, 'error');
+    setStatus(connectStatus, '接続に失敗しました: ' + friendlyIpcError(e), 'error');
   } finally {
     setBusy(false);
   }
@@ -121,24 +128,49 @@ function renderModuleList() {
   selectSummary.textContent = `アクティブなプロジェクト ${state.projectCount} 件で現在使用中のモジュールです。対象にチェックを入れ、ON または OFF を実行してください。（数字は現在の使用プロジェクト数）`;
   moduleListEl.innerHTML = '';
   for (const mod of state.modules) {
-    const id = 'mod-' + mod.name;
+    // モジュール名/表示名はサーバ由来の文字列のため、innerHTML ではなく
+    // createElement + textContent で挿入する (マークアップ注入対策)
     const row = document.createElement('label');
     row.className = 'module-row';
-    row.innerHTML = `
-      <input type="checkbox" id="${id}" value="${mod.name}" />
-      <span class="module-label">${mod.label}</span>
-      <span class="module-name">${mod.name}</span>
-      <span class="module-count">${mod.inUse} プロジェクト</span>
-    `;
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.value = mod.name;
+
+    const label = document.createElement('span');
+    label.className = 'module-label';
+    label.textContent = mod.label;
+
+    const name = document.createElement('span');
+    name.className = 'module-name';
+    name.textContent = mod.name;
+
+    const count = document.createElement('span');
+    count.className = 'module-count';
+    count.textContent = `${mod.inUse} プロジェクト`;
+
+    row.append(checkbox, label, name, count);
     moduleListEl.appendChild(row);
   }
+  updateRunButtons();
 }
+
+// 選択0件時は ON/OFF ボタンを非活性にする (誤操作防止)
+function updateRunButtons() {
+  const anyChecked = !!moduleListEl.querySelector('input[type=checkbox]:checked');
+  btnOn.disabled = !anyChecked;
+  btnOff.disabled = !anyChecked;
+}
+
+moduleListEl.addEventListener('change', updateRunButtons);
 
 btnCheckAll.addEventListener('click', () => {
   moduleListEl.querySelectorAll('input[type=checkbox]').forEach((cb) => (cb.checked = true));
+  updateRunButtons();
 });
 btnUncheckAll.addEventListener('click', () => {
   moduleListEl.querySelectorAll('input[type=checkbox]').forEach((cb) => (cb.checked = false));
+  updateRunButtons();
 });
 
 // ---- 実行共通 ----
@@ -186,8 +218,8 @@ async function execute(mode) {
       summary.failed > 0 ? 'error' : 'success'
     );
   } catch (e) {
-    appendLog('エラー: ' + e.message);
-    setStatus(logSummary, '実行に失敗しました: ' + e.message, 'error');
+    appendLog('エラー: ' + friendlyIpcError(e));
+    setStatus(logSummary, '実行に失敗しました: ' + friendlyIpcError(e), 'error');
   } finally {
     setBusy(false);
     if (detachProgress) {

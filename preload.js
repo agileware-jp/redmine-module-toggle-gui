@@ -3,7 +3,8 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 // renderer からは window.api 経由でのみメインプロセスを呼べる。
-// API キーや URL はメインプロセスに渡して処理し、renderer 側には保持しない方針。
+// API キー等の機密値はディスクに保存しない。renderer では接続〜実行の間だけ
+// メモリ上 (state) に保持し、リクエスト処理自体はメインプロセスで行う。
 contextBridge.exposeInMainWorld('api', {
   fetchModules: (cfg) => ipcRenderer.invoke('fetch-modules', cfg),
   toggle: (cfg) => ipcRenderer.invoke('toggle', cfg),

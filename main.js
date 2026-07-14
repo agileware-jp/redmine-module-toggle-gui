@@ -45,7 +45,7 @@ ipcMain.handle('fetch-modules', async (_event, { url, apiKey, tls }) => {
   return await fetchModuleSummary(url, apiKey, { tls });
 });
 
-// モジュールの ON/OFF 実行 (現状は off のみ UI から呼ばれる。mode で将来の on に対応)
+// モジュールの ON/OFF 実行 (UI の ON/OFF ボタンから mode='on'|'off' で呼ばれる)
 ipcMain.handle('toggle', async (event, { url, apiKey, modules, mode, dryRun, tls }) => {
   return await runToggle({
     url,

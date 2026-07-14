@@ -110,6 +110,35 @@ function backoffMs(attempt) {
   return Math.min(base + jitter, RETRY_MAX_WAIT_MS);
 }
 
+/**
+ * ネットワーク系エラーを利用者向けの日本語メッセージに分類する。
+ * 分類できない場合は null (元のエラーをそのまま使う)。
+ */
+function describeNetworkError(e, timeoutMs) {
+  if (e && e.name === 'TimeoutError') {
+    return `サーバが応答しませんでした（タイムアウト: ${timeoutMs}ms）。URL とサーバの状態を確認してください。`;
+  }
+  const code = (e && e.cause && e.cause.code) || (e && e.code);
+  switch (code) {
+    case 'ENOTFOUND':
+    case 'EAI_AGAIN':
+      return 'ホスト名を解決できません。URL のホスト名を確認してください。';
+    case 'ECONNREFUSED':
+      return '接続が拒否されました。URL のポート番号やサーバの起動状態を確認してください。';
+    case 'ECONNRESET':
+      return '接続が中断されました。ネットワークやプロキシの状態を確認してください。';
+    case 'CERT_HAS_EXPIRED':
+      return 'サーバ証明書の有効期限が切れています。';
+    case 'DEPTH_ZERO_SELF_SIGNED_CERT':
+    case 'SELF_SIGNED_CERT_IN_CHAIN':
+    case 'UNABLE_TO_VERIFY_LEAF_SIGNATURE':
+    case 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY':
+      return 'サーバ証明書を検証できません。自己署名/社内CAの場合は「TLS / 証明書設定」を確認してください。';
+    default:
+      return null;
+  }
+}
+
 /** 429 の Retry-After ヘッダ (秒数 or HTTP-date) を ms に変換。無ければ null */
 function retryAfterMs(res) {
   const h = res.headers.get('retry-after');
@@ -153,6 +182,13 @@ async function fetchWithRetry(url, options = {}, { timeoutMs = DEFAULT_TIMEOUT_M
         await sleep(wait);
         continue;
       }
+      // リトライ枯渇: 分類できるエラーは利用者向けメッセージに変換して投げ直す
+      const friendly = describeNetworkError(e, timeoutMs);
+      if (friendly) {
+        const wrapped = new Error(friendly);
+        wrapped.cause = e;
+        throw wrapped;
+      }
       throw e;
     }
   }
@@ -169,6 +205,9 @@ function normalizeUrl(rawUrl) {
     throw new Error('Redmine URL が指定されていません。');
   }
   let u = rawUrl.trim();
+  if (!/^https?:\/\//i.test(u)) {
+    throw new Error('URL は http:// または https:// で始まる必要があります。');
+  }
   u = u.replace(
     /\/(projects|issues|my|activity|time_entries|admin|news|boards|documents|wiki|roadmap|gantt|calendar)(\/.*)?$/i,
     ''
@@ -370,4 +409,9 @@ module.exports = {
   computeAfter,
   sameSet,
   buildDispatcher,
+  buildHeaders,
+  isRetriableStatus,
+  backoffMs,
+  retryAfterMs,
+  describeNetworkError,
 };
