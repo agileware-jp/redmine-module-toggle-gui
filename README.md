@@ -84,24 +84,27 @@ npm run build:win
 
 ## macOS 用アプリのビルド（任意）
 
-配布用の macOS アプリも同じコードベースから生成できる。macOS 上で次のように行う（クロスビルドはしない）。
+配布用の macOS アプリも同じコードベースから生成できる。macOS 上でネイティブにビルドする（クロスビルドはしない）。
+mac ターゲット（`build.mac`）とスクリプト（`build:mac`）は package.json に定義済み。
 
-1. `package.json` の `build` に mac ターゲットを追加（例）:
+1. **Node.js 22 以上を使う**（重要）。18 系だと `npm install` 時の electron postinstall や electron-builder が `ERR_REQUIRE_ESM` で失敗する。asdf の例:
 
-   ```json
-   "mac": { "target": ["dmg", "zip"] }
+   ```sh
+   asdf shell nodejs 22.16.0
+   node -v   # v22 以上であることを確認
    ```
 
-2. ビルド用スクリプトを追加（例: `"build:mac": "electron-builder --mac"`）し、macOS 上で実行:
+2. ビルド:
 
    ```sh
    npm install
    npm run build:mac
    ```
 
-3. `dist/` に `.dmg` / `.app` が出力される。
+3. `dist/` に `.dmg` / `.zip`（中身は `.app`）が出力される。アーキテクチャはビルドした Mac に合わせられる（Apple Silicon なら arm64）。
 
-> 署名・公証（notarization）なしの場合、macOS の Gatekeeper により初回起動時に警告が出る（右クリック →「開く」等で回避可能）。
+> - Developer ID 証明書が無い環境では **ad-hoc 署名**（`build.mac.identity: "-"` 設定済み）でビルドされる。ビルドした Mac ではそのまま起動できるが、**他の Mac へ配布すると Gatekeeper の警告**が出る（右クリック →「開く」で起動可能）。正式配布には Developer ID 署名＋公証（notarization）が必要。
+> - Intel Mac 向けが必要な場合は Intel Mac 上でビルドするか、`electron-builder --mac --x64` を指定する。
 
 ## 注意
 
